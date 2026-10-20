@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Finance Advisor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 text-white z-50 -translate-x-full lg:translate-x-0 transition-transform duration-300">
+    <div class="flex items-center gap-3 px-6 py-6 border-b border-white/10">
+      <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/30">
+        <i class="fas fa-robot text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg tracking-tight">AI Finance</h1>
+        <p class="text-[11px] text-slate-400 font-medium">Personal Advisor</p>
+      </div>
+    </div>
+    <nav class="px-3 py-5 space-y-1">
+      <button onclick="showPage('dashboard')" class="nav-btn active" data-page="dashboard">
+        <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+      </button>
+      <button onclick="showPage('chat')" class="nav-btn" data-page="chat">
+        <i class="fas fa-magic w-5 text-center"></i> AI Advisor
+        <span class="ml-auto bg-sky-400/20 text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-full">AI</span>
+      </button>
+      <button onclick="showPage('expenses')" class="nav-btn" data-page="expenses">
+        <i class="fas fa-wallet w-5 text-center"></i> Transactions
+      </button>
+      <button onclick="showPage('budget')" class="nav-btn" data-page="budget">
+        <i class="fas fa-bullseye w-5 text-center"></i> Budget & Goals
+      </button>
+      <button onclick="showPage('reports')" class="nav-btn" data-page="reports">
+        <i class="fas fa-chart-pie w-5 text-center"></i> Reports
+      </button>
+    </nav>
+    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
+      <button onclick="clearAllData()" class="w-full text-xs text-slate-500 hover:text-red-400 py-2.5 rounded-xl hover:bg-white/5 transition font-medium">
+        <i class="fas fa-trash-alt mr-1.5"></i> Clear All Data
+      </button>
+    </div>
+  </aside>
+
+  <div id="overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 hidden lg:hidden" onclick="closeSidebar()"></div>
+
+  <div class="lg:ml-64 min-h-screen">
+    <!-- HEADER -->
+    <header class="top-header sticky top-0 z-30 px-4 sm:px-6 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="openSidebar()" class="lg:hidden w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div>
+          <h2 id="pageTitle" class="text-lg font-bold tracking-tight text-slate-900">Dashboard</h2>
+          <p class="text-xs text-slate-500 font-medium">AI Assisted Personal Finance</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleDark()" id="darkBtn" class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition" title="Dark mode">
+          <i class="fas fa-moon"></i>
+        </button>
+        <button onclick="showPage('expenses')" class="btn-primary flex items-center gap-2 text-sm !py-2 !px-4">
+          <i class="fas fa-plus text-xs"></i>
+          <span class="hidden sm:inline">Add</span>
+        </button>
+        <button onclick="showPage('chat')" class="hidden sm:flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+          <i class="fas fa-robot"></i> Ask AI
+        </button>
+      </div>
+    </header>
+
+    <main class="p-4 sm:p-6 max-w-7xl">
+
+      <!-- ========== DASHBOARD ========== -->
+      <div id="page-dashboard" class="page">
+        <!-- Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <div class="stat-card stat-gradient">
+            <div class="flex justify-between items-start mb-3">
+              <span class="text-sky-100 text-xs font-semibold uppercase tracking-wide">Balance</span>
+              <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><i class="fas fa-wallet"></i></div>
+            </div>
+            <p class="text-3xl font-extrabold tracking-tight" id="card-balance">₹0</p>
+            <p class="text-sky-100/80 text-xs mt-2 font-medium" id="card-balance-sub">Add income & expenses</p>
+          </div>
+          <div class="stat-card card">
+            <div class="flex justify-between items-start mb-3">
+              <span class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Income</span>
+              <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fas fa-arrow-up"></i></div>
+            </div>
+            <p class="text-3xl font-extrabold tracking-tight text-slate-900" id="card-income">₹0</p>
+            <p class="text-emerald-600 text-xs mt-2 font-medium" id="card-income-sub">No income yet</p>
+          </div>
+          <div class="stat-card card">
+            <div class="flex justify-between items-start mb-3">
+              <span class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Expenses</span>
+              <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center"><i class="fas fa-arrow-down"></i></div>
+            </div>
+            <p class="text-3xl font-extrabold tracking-tight text-slate-900" id="card-expense">₹0</p>
+            <p class="text-rose-500 text-xs mt-2 font-medium" id="card-expense-sub">No expenses yet</p>
+          </div>
+          <div class="stat-card card">
+            <div class="flex justify-between items-start mb-3">
+              <span class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Savings</span>
+              <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fas fa-piggy-bank"></i></div>
+            </div>
+            <p class="text-3xl font-extrabold tracking-tight text-slate-900" id="card-savings">0%</p>
+            <p class="text-amber-600 text-xs mt-2 font-medium" id="card-savings-sub">Add data to calculate</p>
+          </div>
+        </div>
+
+        <!-- Quick Add Banner -->
+        <div id="quickAddBar" class="quick-banner mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center shadow-md shadow-sky-500/30">
+              <i class="fas fa-plus"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-sky-900">Start by adding your data</p>
+              <p class="text-xs text-sky-700/80">Pehle salary (Income), phir expenses add karo</p>
+            </div>
+          </div>
+          <button onclick="showPage('expenses')" class="btn-primary">
+            <i class="fas fa-plus mr-1.5"></i> Add Transaction
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-6">
+          <div class="xl:col-span-2 card p-5">
+            <h3 class="font-bold text-slate-800 mb-4">Spending Overview</h3>
+            <div class="h-64 relative">
+              <canvas id="spendChart"></canvas>
+              <div id="spendEmpty" class="absolute inset-0 flex items-center justify-center">
+                <div class="empty-state py-0">
+                  <div class="icon-wrap"><i class="fas fa-chart-line"></i></div>
+                  <p class="text-slate-400 text-sm">Charts appear after you add data</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ai-card p-5">
+            <div class="flex items-center gap-2.5 mb-4">
+              <div class="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center shadow-lg shadow-sky-500/40">
+                <i class="fas fa-lightbulb"></i>
+              </div>
+              <h3 class="font-bold">AI Insight</h3>
+            </div>
+            <p class="text-slate-300 text-sm leading-relaxed mb-5" id="aiInsight">
+              Add income and expenses — main tumhare real numbers se personal tips dunga.
+            </p>
+            <button onclick="showPage('chat')" class="w-full bg-white/10 hover:bg-white/20 border border-white/10 py-2.5 rounded-xl text-sm font-semibold transition">
+              Chat with AI →
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          <div class="card p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-slate-800">Recent</h3>
+              <button onclick="showPage('expenses')" class="text-sky-600 text-sm font-semibold hover:underline">View all</button>
+            </div>
+            <div id="recentList"></div>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-bold text-slate-800 mb-4">By Category</h3>
+            <div class="h-56 relative">
+              <canvas id="pieChart"></canvas>
+              <div id="pieEmpty" class="absolute inset-0 flex items-center justify-center">
+                <div class="empty-state py-0">
+                  <div class="icon-wrap"><i class="fas fa-chart-pie"></i></div>
+                  <p class="text-slate-400 text-sm">No expense data yet</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== CHAT ========== -->
+      <div id="page-chat" class="page">
+        <div class="card overflow-hidden flex flex-col" style="height:calc(100vh - 130px)">
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-sky-50 to-white">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30">
+              <i class="fas fa-robot text-lg"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-800">AI Finance Advisor</h3>
+              <p class="text-xs text-emerald-600 font-medium flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                Online · uses your data
+              </p>
+            </div>
+          </div>
+          <div id="chatBox" class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/80"></div>
+          <form onsubmit="sendChat(event)" class="p-4 border-t border-slate-100 bg-white flex gap-3">
+            <input id="chatInput" type="text" placeholder="Ask: analyze spending, save more, budget..."
+              class="input-field !mt-0 flex-1" autocomplete="off" />
+            <button type="submit" class="btn-primary !px-0 w-12 h-12 flex items-center justify-center !rounded-xl shrink-0">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ========== EXPENSES ========== -->
+      <div id="page-expenses" class="page">
+        <div class="card p-5 mb-5">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center">
+              <i class="fas fa-plus"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-800">Add Transaction</h3>
+              <p class="text-xs text-slate-500">Income (salary) ya Expense add karo</p>
+            </div>
+          </div>
+          <input type="hidden" id="editId" value="" />
+          <form onsubmit="addExpense(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4" id="txForm">
+            <div>
+              <label class="field-label">Title</label>
+              <input id="expTitle" required placeholder="Salary / Swiggy / Rent" class="input-field" />
+            </div>
+            <div>
+              <label class="field-label">Amount (₹)</label>
+              <input id="expAmount" type="number" required min="1" placeholder="5000" class="input-field" />
+            </div>
+            <div>
+              <label class="field-label">Category</label>
+              <select id="expCategory" class="input-field">
+                <option>Food</option><option>Transport</option><option>Shopping</option>
+                <option>Bills</option><option>Entertainment</option><option>Health</option>
+                <option>Education</option><option>Salary</option><option>Freelance</option><option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label">Type</label>
+              <select id="expType" class="input-field">
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label">Date</label>
+              <input id="expDate" type="date" class="input-field" />
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="btn-primary w-full" id="saveBtn">
+                <i class="fas fa-check mr-1.5"></i> <span id="saveBtnText">Save</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card overflow-hidden">
+          <div id="expSummary" class="px-5 py-3 border-b border-slate-100 grid grid-cols-3 gap-3 text-center bg-slate-50/80">
+            <div><p class="text-[10px] uppercase text-slate-400 font-semibold">Income</p><p class="text-sm font-bold text-emerald-600" id="sumIncome">₹0</p></div>
+            <div><p class="text-[10px] uppercase text-slate-400 font-semibold">Expense</p><p class="text-sm font-bold text-rose-500" id="sumExpense">₹0</p></div>
+            <div><p class="text-[10px] uppercase text-slate-400 font-semibold">Net</p><p class="text-sm font-bold text-slate-800" id="sumNet">₹0</p></div>
+          </div>
+          <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3">
+            <h3 class="font-bold text-slate-800">All Transactions <span id="txCount" class="text-slate-400 font-medium text-sm">(0)</span></h3>
+            <div class="flex flex-wrap gap-2 items-center">
+              <input id="searchTx" type="search" placeholder="Search..." oninput="renderExpenses()" class="input-field !mt-0 !py-2 !text-xs w-32 sm:w-40" />
+              <select id="filterType" onchange="renderExpenses()" class="input-field !mt-0 !py-2 !text-xs w-auto">
+                <option value="all">All Types</option>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+              </select>
+              <select id="filterCat" onchange="renderExpenses()" class="input-field !mt-0 !py-2 !text-xs w-auto">
+                <option value="all">All Categories</option>
+                <option>Food</option><option>Transport</option><option>Shopping</option>
+                <option>Bills</option><option>Entertainment</option><option>Health</option>
+                <option>Education</option><option>Salary</option><option>Freelance</option><option>Other</option>
+              </select>
+              <select id="sortTx" onchange="renderExpenses()" class="input-field !mt-0 !py-2 !text-xs w-auto">
+                <option value="date-desc">Newest</option>
+                <option value="date-asc">Oldest</option>
+                <option value="amt-desc">Amount ↓</option>
+                <option value="amt-asc">Amount ↑</option>
+              </select>
+              <button onclick="exportCSV()" class="text-xs font-semibold text-sky-600 border border-sky-200 hover:bg-sky-50 px-3 py-2 rounded-xl transition" title="Export CSV">
+                <i class="fas fa-download mr-1"></i>CSV
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm tx-table">
+              <thead>
+                <tr>
+                  <th class="text-left">Title</th>
+                  <th class="text-left">Category</th>
+                  <th class="text-left">Date</th>
+                  <th class="text-left">Type</th>
+                  <th class="text-right">Amount</th>
+                  <th class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="expTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== BUDGET ========== -->
+      <div id="page-budget" class="page">
+        <div class="card p-5 mb-5">
+          <h3 class="font-bold text-slate-800 mb-4">Set Category Budget</h3>
+          <form onsubmit="addBudget(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div>
+              <label class="field-label">Category</label>
+              <select id="budCategory" class="input-field">
+                <option>Food</option><option>Transport</option><option>Shopping</option>
+                <option>Bills</option><option>Entertainment</option><option>Health</option>
+                <option>Education</option><option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label">Monthly Limit (₹)</label>
+              <input id="budLimit" type="number" required min="1" placeholder="10000" class="input-field" />
+            </div>
+            <div class="sm:col-span-2 flex items-end">
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-plus mr-1.5"></i> Add Budget
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card p-5 mb-5">
+          <h3 class="font-bold text-slate-800 mb-5">Your Budgets</h3>
+          <div id="budgetList"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="card p-5">
+            <h3 class="font-bold text-slate-800 mb-4">Savings Goals</h3>
+            <form onsubmit="addGoal(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+              <input id="goalName" required placeholder="Goal name" class="input-field !mt-0" />
+              <input id="goalTarget" type="number" required min="1" placeholder="Target ₹" class="input-field !mt-0" />
+              <input id="goalCurrent" type="number" min="0" value="0" placeholder="Saved ₹" class="input-field !mt-0" />
+              <button type="submit" class="sm:col-span-3 btn-primary">
+                <i class="fas fa-plus mr-1.5"></i> Add Goal
+              </button>
+            </form>
+            <div id="goalsList"></div>
+          </div>
+          <div class="ai-card p-5">
+            <h3 class="font-bold mb-2">AI Recommendation</h3>
+            <p class="text-slate-300 text-sm leading-relaxed mb-5" id="budgetAITip">
+              Budgets aur transactions add karo — tips yahan dikhenge.
+            </p>
+            <button onclick="showPage('chat')" class="w-full bg-white/10 hover:bg-white/20 border border-white/10 py-2.5 rounded-xl text-sm font-semibold transition">
+              Ask AI →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== REPORTS ========== -->
+      <div id="page-reports" class="page">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-5">
+          <div class="card p-5">
+            <h3 class="font-bold text-slate-800 mb-4">Income vs Expenses</h3>
+            <div class="h-64 relative">
+              <canvas id="barChart"></canvas>
+              <div id="barEmpty" class="absolute inset-0 flex items-center justify-center">
+                <div class="empty-state py-0">
+                  <div class="icon-wrap"><i class="fas fa-chart-bar"></i></div>
+                  <p class="text-slate-400 text-sm">Add data to see charts</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-bold text-slate-800 mb-4">Category Breakdown</h3>
+            <div class="h-64 relative">
+              <canvas id="reportPie"></canvas>
+              <div id="reportPieEmpty" class="absolute inset-0 flex items-center justify-center">
+                <div class="empty-state py-0">
+                  <div class="icon-wrap"><i class="fas fa-chart-pie"></i></div>
+                  <p class="text-slate-400 text-sm">No expenses yet</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="card p-5 text-center">
+            <p class="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">Transactions</p>
+            <p class="text-2xl font-extrabold text-slate-900" id="rep-count">0</p>
+          </div>
+          <div class="card p-5 text-center">
+            <p class="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">Top Category</p>
+            <p class="text-2xl font-extrabold text-slate-900" id="rep-top">—</p>
+          </div>
+          <div class="card p-5 text-center">
+            <p class="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">Net Balance</p>
+            <p class="text-2xl font-extrabold text-slate-900" id="rep-balance">₹0</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div id="toast"></div>
+  <script src="script.js"></script>
+</body>
+</html>
